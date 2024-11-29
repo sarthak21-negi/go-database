@@ -31,7 +31,27 @@ type Options struct{
 	Logger
 }
 
-func New(){
+func New()(){
+
+}
+
+func (d* Driver) Write() error{
+
+}
+
+func (d* Driver) Read() error{
+
+}
+
+func (d* Driver) ReadAll()(){
+
+}
+
+func (d* Driver) Delete() error{
+
+}
+
+func (d* Driver) getOrCreateMutex()* sync.Mutex{
 
 }
 
