@@ -1,0 +1,12 @@
+{
+	"Name": "Himanshu",
+	"Contact": 9286457312,
+	"Age": "22",
+	"Company": "Jane-Street",
+	"Address": {
+		"City": "New York",
+		"State": "New York State",
+		"Country": "USA",
+		"Pincode": 10001
+	}
+}

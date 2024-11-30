@@ -1,0 +1,12 @@
+{
+	"Name": "Mohit",
+	"Contact": 9582457312,
+	"Age": "22",
+	"Company": "Walmart",
+	"Address": {
+		"City": "Banglore",
+		"State": "Karnataka",
+		"Country": "India",
+		"Pincode": 410001
+	}
+}

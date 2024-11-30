@@ -1,0 +1,12 @@
+{
+	"Name": "Chinmoy",
+	"Contact": 8786444382,
+	"Age": "22",
+	"Company": "Apple",
+	"Address": {
+		"City": "San Fransico",
+		"State": "California",
+		"Country": "USA",
+		"Pincode": 10251
+	}
+}

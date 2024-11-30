@@ -1,0 +1,12 @@
+{
+	"Name": "Akash",
+	"Contact": 9271257452,
+	"Age": "24",
+	"Company": "Qualcomm",
+	"Address": {
+		"City": "New York",
+		"State": "New York State",
+		"Country": "USA",
+		"Pincode": 10001
+	}
+}

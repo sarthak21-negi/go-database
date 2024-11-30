@@ -5,7 +5,6 @@ import (
 	"os"
 	"encoding/json"
 	"sync"
-	"io/ioutil"
 	"path/filepath"
 	"github.com/jcelliott/lumber"
 )
@@ -99,11 +98,11 @@ func (d* Driver) Write(collection, resource string, v interface{}) error{
 func (d* Driver) Read(collection, resource string, v interface{}) error{
 
 	if collection == ""{
-		return fmt.Errorf("Missing collection - no place to save records!")
+		return fmt.Errorf("Missing collection - unable to read!")
 	}
 
 	if resource == ""{
-		return fmt.Errorf("Missing resource - unable to save records (no name)!")
+		return fmt.Errorf("Missing resource - unable to read records (no name)!")
 	}
 
 	records := filepath.Join(d.dir, collection, resource)
@@ -120,12 +119,52 @@ func (d* Driver) Read(collection, resource string, v interface{}) error{
 	return json.Unmarshal(b, &v)
 }
 
-func (d* Driver) ReadAll()(){
+func (d* Driver) ReadAll(collection string)([]string, error){
 
+	if collection == ""{
+		return nil, fmt.Errorf("Missing collection - unable to read!")
+	}
+
+	dir := filepath.Join(d.dir, collection)
+	
+	if _, err := stat(dir); err != nil{
+		return nil, err
+	}
+	files, _ := os.ReadDir(dir)
+
+	var record []string
+
+	for _, file := range files{
+		b, err := os.ReadFile(filepath.Join(dir, file.Name()))
+
+		if err != nil{
+			return nil, err
+		}
+		record = append(record, string(b))
+	}
+	return record, nil
 }
 
-func (d* Driver) Delete() error{
+func (d* Driver) Delete(collection,  resource string) error{
 
+	path := filepath.Join(collection ,resource)
+	mutex := d.getOrCreateMutex(collection)
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	dir := filepath.Join(d.dir, path)
+
+	switch fi, err := stat(dir); {
+	case fi == nil, err != nil:
+		return fmt.Errorf("unable to find file or directory named '%v''\n'", path )
+	
+	case fi.Mode().IsDir():
+		return os.RemoveAll(dir)
+
+	case fi.Mode().IsRegular():
+		return os.RemoveAll(dir + ".json")
+	} 
+	return nil
 }
 
 func (d* Driver) getOrCreateMutex(collection string)* sync.Mutex{
@@ -201,13 +240,12 @@ func main(){
 		}
 		allusers = append(allusers, employeeFound)
 	 }
-	 fmt.Println(allusers)
 
-	 if err := db.Delete("user", "Akash"); err != nil{
-		fmt.Println("Error", err)
-	 }
+	//  if err := db.Delete("users", "Akash"); err != nil{
+	// 	fmt.Println("Error", err)
+	//  }
 
-	 if err := db.Delete("user", ""); err != nil{
-		fmt.Println("Error", err)
-	 }
+	//  if err := db.Delete("users", ""); err != nil{
+	// 	fmt.Println("Error", err)
+	//  }
 }

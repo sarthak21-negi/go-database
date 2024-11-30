@@ -1,0 +1,12 @@
+{
+	"Name": "Uday",
+	"Contact": 8896542374,
+	"Age": "22",
+	"Company": "Morgan Stanley",
+	"Address": {
+		"City": "Banglore",
+		"State": "Karnataka",
+		"Country": "India",
+		"Pincode": 410013
+	}
+}

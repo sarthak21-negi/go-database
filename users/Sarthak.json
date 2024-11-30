@@ -1,0 +1,12 @@
+{
+	"Name": "Sarthak",
+	"Contact": 9785207312,
+	"Age": "21",
+	"Company": "Microsoft",
+	"Address": {
+		"City": "Redmond",
+		"State": "Washington",
+		"Country": "USA",
+		"Pincode": 10501
+	}
+}
