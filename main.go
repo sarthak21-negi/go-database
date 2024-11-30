@@ -5,6 +5,8 @@ import (
 	"os"
 	"encoding/json"
 	"sync"
+	"io/ioutil"
+	"path/filepath"
 	"github.com/jcelliott/lumber"
 )
 
@@ -31,16 +33,91 @@ type Options struct{
 	Logger
 }
 
-func New()(){
+func New(dir string, option *Options)(*Driver, error){
+	dir = filepath.Clean(dir)
 
+	optns := Options{}
+
+	if option != nil{
+		optns = *option
+	}
+
+	if optns.Logger == nil{
+		optns.Logger = lumber.NewConsoleLogger(lumber.INFO)
+	}
+
+	driver := Driver{
+		dir: dir,
+		mutexes: make(map[string]*sync.Mutex),
+		log: optns.Logger,
+	}
+
+	if _, err := os.Stat(dir); err == nil{
+		optns.Logger.Debug("Using '%s' (database already exist)/n",dir)
+		return &driver, nil
+	}
+
+	optns.Logger.Debug("Creating the database at '%s'..../n", dir)
+	return &driver, os.MkdirAll(dir, 0755)
 }
 
-func (d* Driver) Write() error{
+func (d* Driver) Write(collection, resource string, v interface{}) error{
 
+	if collection == ""{
+		return fmt.Errorf("Missing collection - no place to save records!")
+	}
+
+	if resource == ""{
+		return fmt.Errorf("Missing resource - unable to save records (no name)!")
+	}
+
+	mutex := d.getOrCreateMutex(collection)
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	dir := filepath.Join(d.dir, collection)
+	fnlPath := filepath.Join(dir, resource+".json")
+	tmpPath := fnlPath + ".tmp"
+	
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	b, err := json.MarshalIndent(v, "", "\t")
+	if err != nil{
+		return err
+	}
+	b = append(b, byte('\n'))
+
+	if err := os.WriteFile(tmpPath, b , 0644); err != nil{
+		return err
+	}
+
+	return os.Rename(tmpPath, fnlPath)
 }
 
-func (d* Driver) Read() error{
+func (d* Driver) Read(collection, resource string, v interface{}) error{
 
+	if collection == ""{
+		return fmt.Errorf("Missing collection - no place to save records!")
+	}
+
+	if resource == ""{
+		return fmt.Errorf("Missing resource - unable to save records (no name)!")
+	}
+
+	records := filepath.Join(d.dir, collection, resource)
+
+	if _, err := stat(records); err != nil{
+		return err
+	}
+
+	b, err := os.ReadFile(records +".json")
+
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(b, &v)
 }
 
 func (d* Driver) ReadAll()(){
@@ -51,10 +128,24 @@ func (d* Driver) Delete() error{
 
 }
 
-func (d* Driver) getOrCreateMutex()* sync.Mutex{
+func (d* Driver) getOrCreateMutex(collection string)* sync.Mutex{
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+	m, ok := d.mutexes[collection]
 
+	if !ok{
+		m = &sync.Mutex{}
+		d.mutexes[collection] = m
+	}
+	return m
 }
 
+func stat(path string)(fi os.FileInfo, err error){
+	if fi, err =  os.Stat(path); os.IsNotExist(err){
+		fi, err = os.Stat(path + ".json") 
+	}
+	return fi, err
+}
 type Address struct{
 	City string
 	State string
@@ -112,7 +203,7 @@ func main(){
 	 }
 	 fmt.Println(allusers)
 
-	 if err := db.Delete("user", "john"); err != nil{
+	 if err := db.Delete("user", "Akash"); err != nil{
 		fmt.Println("Error", err)
 	 }
 
